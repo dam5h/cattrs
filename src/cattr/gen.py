@@ -244,14 +244,7 @@ def make_dict_structure_fn(
         cl, "structure", reserve=_cattrs_use_linecache
     )
     script = "\n".join(total_lines)
-    eval(
-        compile(
-            script,
-            fname,
-            "exec",
-        ),
-        globs,
-    )
+    eval(compile(script, fname, "exec"), globs)
     if _cattrs_use_linecache:
         linecache.cache[fname] = len(script), None, total_lines, fname
 
@@ -384,9 +377,7 @@ def make_mapping_structure_fn(
     """Generate a specialized unstructure function for a mapping."""
     fn_name = "structure_mapping"
 
-    globs = {
-        "__cattr_mapping_cl": structure_to,
-    }
+    globs = {"__cattr_mapping_cl": structure_to}
 
     lines = []
     lines.append(f"def {fn_name}(mapping, _):")

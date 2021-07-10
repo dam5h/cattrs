@@ -109,7 +109,7 @@ def everythings(
             blacklist_categories=("Cs",)
             if allow_control_characters_in_values
             else ("Cs", "Cc")
-        ),
+        )
     )
     dts = datetimes(
         min_value=datetime(1900, 1, 1),
@@ -196,13 +196,7 @@ def test_stdlib_json(everything: Everything):
 def test_ujson(everything: Everything):
     converter = ujson_make_converter()
     raw = ujson_dumps(converter.unstructure(everything))
-    assert (
-        converter.structure(
-            ujson_loads(raw),
-            Everything,
-        )
-        == everything
-    )
+    assert converter.structure(ujson_loads(raw), Everything) == everything
 
 
 @given(
@@ -215,13 +209,7 @@ def test_ujson(everything: Everything):
 def test_orjson(everything: Everything):
     converter = orjson_make_converter()
     raw = orjson_dumps(converter.unstructure(everything))
-    assert (
-        converter.structure(
-            orjson_loads(raw),
-            Everything,
-        )
-        == everything
-    )
+    assert converter.structure(orjson_loads(raw), Everything) == everything
 
 
 @given(everythings(min_int=-9223372036854775808, max_int=18446744073709551615))
@@ -230,8 +218,7 @@ def test_msgpack(everything: Everything):
     raw = msgpack_dumps(converter.unstructure(everything))
     assert (
         converter.structure(
-            msgpack_loads(raw, strict_map_key=False),
-            Everything,
+            msgpack_loads(raw, strict_map_key=False), Everything
         )
         == everything
     )
@@ -248,13 +235,7 @@ def test_msgpack(everything: Everything):
 def test_bson(everything: Everything):
     converter = bson_make_converter()
     raw = bson_dumps(converter.unstructure(everything))
-    assert (
-        converter.structure(
-            bson_loads(raw),
-            Everything,
-        )
-        == everything
-    )
+    assert converter.structure(bson_loads(raw), Everything) == everything
 
 
 @given(everythings())
@@ -262,13 +243,7 @@ def test_pyyaml(everything: Everything):
     converter = pyyaml_make_converter()
     unstructured = converter.unstructure(everything)
     raw = safe_dump(unstructured)
-    assert (
-        converter.structure(
-            safe_load(raw),
-            Everything,
-        )
-        == everything
-    )
+    assert converter.structure(safe_load(raw), Everything) == everything
 
 
 @given(
@@ -283,10 +258,4 @@ def test_tomlkit(everything: Everything):
     converter = tomlkit_make_converter()
     unstructured = converter.unstructure(everything)
     raw = tomlkit_dumps(unstructured)
-    assert (
-        converter.structure(
-            tomlkit_loads(raw),
-            Everything,
-        )
-        == everything
-    )
+    assert converter.structure(tomlkit_loads(raw), Everything) == everything
