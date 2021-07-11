@@ -10,6 +10,8 @@ History
 * Support using the attr converter callback during structure. 
   By default, this is a method of last resort, but it can be elevated to the default by setting `prefer_attrib_converters=True` on `Converter` or `GenConverter`. 
   (`#138 <https://github.com/Tinche/cattrs/issues/138>`_)
+* Converters now support un/structuring hook factories. This is the most powerful and complex venue for customizing un/structuring. This had previously been an internal feature.
+* The `Common Usage Examples <https://cattrs.readthedocs.io/en/latest/usage.html#using-factory-hooks>`_ documentation page now has a section on advanced hook factory usage.
 
 1.7.1 (2021-05-28)
 ------------------
