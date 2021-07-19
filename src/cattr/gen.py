@@ -209,6 +209,8 @@ def make_dict_structure_fn(
     _cattrs_forbid_extra_keys: bool = False,
     _cattrs_use_linecache: bool = True,
     _cattrs_prefer_attrib_converters: bool = False,
+    globalns: Optional[dict] = None,
+    localns: Optional[dict] = None,
     **kwargs,
 ) -> Callable[[Mapping[str, Any]], T]:
     """Generate a specialized dict structuring function for an attrs class."""
@@ -247,7 +249,7 @@ def make_dict_structure_fn(
 
     if any(isinstance(a.type, str) for a in attrs):
         # PEP 563 annotations - need to be resolved.
-        resolve_types(cl)
+        resolve_types(cl, globalns=globalns)
 
     lines.append(f"def {fn_name}(o, *_):")
     lines.append("  res = {")

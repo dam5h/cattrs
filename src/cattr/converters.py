@@ -98,6 +98,7 @@ class Converter(object):
         "_union_struct_registry",
         "_structure_func",
         "_prefer_attrib_converters",
+        "_globalns",
     )
 
     def __init__(
@@ -193,6 +194,11 @@ class Converter(object):
             Any, Callable[[Any, Type[T]], T]
         ] = {}
 
+        self._globalns = None
+
+    def register_namespace(self, globalns) -> None:
+        self._globalns = globalns
+
     def unstructure(self, obj: Any, unstructure_as=None) -> Any:
         return self._unstructure_func.dispatch(
             obj.__class__ if unstructure_as is None else unstructure_as
@@ -208,15 +214,21 @@ class Converter(object):
         )
 
     def register_unstructure_hook(
-        self, cls: Any, func: Callable[[T], Any]
+        self,
+        cls: Any,
+        func: Callable[[T], Any],
+        globalns: Optional[dict] = None,
+        localns: Optional[dict] = None,
     ) -> None:
         """Register a class-to-primitive converter function for a class.
 
         The converter function should take an instance of the class and return
         its Python equivalent.
         """
+        if globalns is None:
+            globalns = self._globalns
         if attrs_has(cls):
-            resolve_types(cls)
+            resolve_types(cls, globalns=globalns, localns=localns)
         if is_union_type(cls):
             self._unstructure_func.register_func_list(
                 [(lambda t: t == cls, func)]
@@ -249,7 +261,11 @@ class Converter(object):
         self._unstructure_func.register_func_list([(predicate, factory, True)])
 
     def register_structure_hook(
-        self, cl: Any, func: Callable[[Any, Type[T]], T]
+        self,
+        cl: Any,
+        func: Callable[[Any, Type[T]], T],
+        globalns: Optional[dict] = None,
+        localns: Optional[dict] = None,
     ):
         """Register a primitive-to-class converter function for a type.
 
@@ -260,8 +276,10 @@ class Converter(object):
         and return the instance of the class. The type may seem redundant, but
         is sometimes needed (for example, when dealing with generic classes).
         """
+        if globalns is None:
+            globalns = self._globalns
         if attrs_has(cl):
-            resolve_types(cl)
+            resolve_types(cl, globalns=globalns, localns=localns)
         if is_union_type(cl):
             self._union_struct_registry[cl] = func
             self._structure_func.clear_cache()
@@ -707,12 +725,19 @@ class GenConverter(Converter):
         h = self._structure_func.dispatch(origin)
         return h
 
-    def gen_unstructure_attrs_fromdict(self, cl: Type[T]) -> Dict[str, Any]:
+    def gen_unstructure_attrs_fromdict(
+        self,
+        cl: Type[T],
+        globalns: Optional[dict] = None,
+        localns: Optional[dict] = None,
+    ) -> Dict[str, Any]:
+        if globalns is None:
+            globalns = self._globalns
         origin = get_origin(cl)
         attribs = fields(origin or cl)
         if attrs_has(cl) and any(isinstance(a.type, str) for a in attribs):
             # PEP 563 annotations - need to be resolved.
-            resolve_types(cl)
+            resolve_types(cl, globalns=globalns, localns=localns)
         attrib_overrides = {
             a.name: self.type_overrides[a.type]
             for a in attribs
@@ -727,11 +752,18 @@ class GenConverter(Converter):
         )
         return h
 
-    def gen_structure_attrs_fromdict(self, cl: Type[T]) -> T:
+    def gen_structure_attrs_fromdict(
+        self,
+        cl: Type[T],
+        globalns: Optional[dict] = None,
+        localns: Optional[dict] = None,
+    ) -> T:
+        if globalns is None:
+            globalns = self._globalns
         attribs = fields(get_origin(cl) if is_generic(cl) else cl)
         if attrs_has(cl) and any(isinstance(a.type, str) for a in attribs):
             # PEP 563 annotations - need to be resolved.
-            resolve_types(cl)
+            resolve_types(cl, globalns=globalns, localns=localns)
         attrib_overrides = {
             a.name: self.type_overrides[a.type]
             for a in attribs
