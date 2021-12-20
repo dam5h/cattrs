@@ -27,6 +27,8 @@ def test_unstruct_attrs_deep_nest(register_namespace):
     make_inner_e = lambda: InnerE(*[make_inner_d() for _ in range(4)])
 
     inst = Outer(*[make_inner_e() for _ in range(4)])
+    for cls in [InnerA, InnerB, InnerC, InnerD, InnerE, Outer]:
+        attr.resolve_types(cls, globals())
     unstruct = c.unstructure(inst)
     b = c.structure(unstruct, Outer)
 
